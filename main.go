@@ -14,7 +14,6 @@ import (
 	"github.com/g3n/engine/material"
 	"github.com/g3n/engine/math32"
 	"github.com/g3n/engine/renderer"
-	"github.com/g3n/engine/util/helper"
 	"github.com/g3n/engine/window"
 )
 
@@ -46,29 +45,34 @@ func main() {
 	a.Subscribe(window.OnWindowSize, onResize)
 	onResize("", nil)
 
-	// Create a blue torus and add it to the scene
-	geom := geometry.NewTorus(1, .4, 12, 32, math32.Pi*2)
-	mat := material.NewStandard(math32.NewColor("DarkBlue"))
+	// Add board
+	const boardSize float32 = 2
+
+	geom := geometry.NewBox(boardSize, 0.2, boardSize)
+	mat := material.NewStandard(math32.NewColor("Sienna"))
 	mesh := graphic.NewMesh(geom, mat)
 	scene.Add(mesh)
 
-	// Create and add a button to the scene
-	btn := gui.NewButton("Make Red")
-	btn.SetPosition(100, 40)
-	btn.SetSize(40, 40)
-	btn.Subscribe(gui.OnClick, func(name string, ev interface{}) {
-		mat.SetColor(math32.NewColor("DarkRed"))
-	})
-	scene.Add(btn)
+	// Add rods
+	const space = boardSize / 4
+	const offset = space/2 - boardSize/2
+	const radius float64 = float64(boardSize / 60)
+	const height float64 = float64(boardSize / 4)
+	for row := 0; row < 4; row++ {
+		for col := 0; col < 4; col++ {
+			rod := geometry.NewCylinder(radius, height, 20, 5, true, false)
+			mat := material.NewStandard(math32.NewColor("Peru"))
+			mesh := graphic.NewMesh(rod, mat)
+			mesh.SetPosition(float32(row)*space+offset, float32(height/2), float32(col)*space+offset)
+			scene.Add(mesh)
+		}
+	}
 
 	// Create and add lights to the scene
 	scene.Add(light.NewAmbient(&math32.Color{1.0, 1.0, 1.0}, 0.8))
 	pointLight := light.NewPoint(&math32.Color{1, 1, 1}, 5.0)
-	pointLight.SetPosition(1, 0, 2)
+	pointLight.SetPosition(0, 3, 0)
 	scene.Add(pointLight)
-
-	// Create and add an axis helper to the scene
-	scene.Add(helper.NewAxes(0.5))
 
 	// Set background color to gray
 	a.Gls().ClearColor(0.5, 0.5, 0.5, 1.0)
